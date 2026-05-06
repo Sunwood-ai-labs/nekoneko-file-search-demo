@@ -1,41 +1,132 @@
-# Nekoneko Company File Search Demo
+<p align="center">
+  <img src="./assets/nekoneko-file-search-logo.svg" alt="Nekoneko Company File Search Demo" width="860">
+</p>
 
-Gemini API File Search の「画像も含むマルチモーダルRAG」を説明するための、ねこねこカンパニー社内検索デモです。
+<p align="center">
+  <a href="./README.ja.md">日本語</a> · <strong>English</strong>
+</p>
 
-## 何が入っているか
+<p align="center">
+  <a href="https://github.com/Sunwood-ai-labs/nekoneko-file-search-demo/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Sunwood-ai-labs/nekoneko-file-search-demo/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://github.com/Sunwood-ai-labs/nekoneko-file-search-demo/releases/tag/v1.0.0"><img alt="Release" src="https://img.shields.io/github/v/release/Sunwood-ai-labs/nekoneko-file-search-demo?sort=semver"></a>
+  <a href="./LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-1d211d"></a>
+  <img alt="React" src="https://img.shields.io/badge/React-19-4b89dc">
+  <img alt="Gemini File Search" src="https://img.shields.io/badge/Gemini-File%20Search-c96b3c">
+</p>
 
-- `public/dataset/images/`: PNG の商品写真、棚札、梱包ラベル
-- `public/dataset/docs/`: FAQ、保証規定、商品マスター
-- `src/data/catalog.ts`: デモ用メタデータ、`department`、`status`、`year`、`media_id`、ページ番号
-- `src/lib/mockSearch.ts`: APIキーなしで動くローカル疑似検索
-- `src/App.tsx`: メタデータフィルター、回答、citation 表示付き UI
+Nekoneko Company File Search Demo is a small public demo for Gemini API File Search with multimodal RAG. It uses a fictional company dataset to show how product images, shelf labels, packaging labels, FAQ documents, warranty notes, and product master data can be searched together with grounded citations.
 
-## ローカル起動
+The app works in two modes:
+
+- **Local mock mode** when no Gemini API server is configured.
+- **Gemini File Search mode** when `GEMINI_API_KEY` and a File Search store are available.
+
+## ✨ Highlights
+
+- Search across PNG images and text documents from one demo interface.
+- Use metadata filters for `department`, `status`, and `year`.
+- Send queries explicitly with a clear submit button.
+- Show grounded answers with citation cards.
+- Open citation detail modals to inspect source text, metadata, full `media_id`, and image previews.
+- Display uploaded demo files inline so users can see the exact source images and document previews.
+- Keep Gemini API keys server-side through a local Express proxy.
+- Fall back across Gemini File Search models when quota or temporary high-demand errors occur.
+
+## 🧺 Demo Dataset
+
+The repository ships six fictional Nekoneko Company files:
+
+| File | Type | Metadata |
+| --- | --- | --- |
+| にゃんサーバー Mini 商品写真 | PNG image | `product`, `final`, `2026` |
+| 毛玉クラウド Pro 棚札 | PNG image | `store`, `final`, `2026` |
+| しっぽセンサー 梱包ラベル | PNG image | `legal`, `final`, `2025` |
+| サポートFAQ 2026 Q2 | Markdown document | `support`, `final`, `2026` |
+| 保証規定 2026 | Markdown document | `legal`, `final`, `2026` |
+| 商品マスター 抜粋 | JSON/text document | `product`, `draft`, `2026` |
+
+Image fixtures are stored under `public/dataset/images/`, and document fixtures are stored under `public/dataset/docs/`.
+
+## 🚀 Quick Start
 
 ```bash
 npm install
+npm run generate:dataset
+npm run dev
+```
+
+Open [http://127.0.0.1:5178/](http://127.0.0.1:5178/).
+
+Without Gemini credentials, the UI falls back to local mock search so the interface remains usable.
+
+## 🔎 Gemini File Search Setup
+
+Create `.env.local`:
+
+```bash
+GEMINI_API_KEY=your_api_key_here
+GEMINI_MODELS=gemini-3.1-flash-lite-preview,gemini-2.5-flash,gemini-2.5-pro,gemini-2.5-flash-lite
+```
+
+Bootstrap a File Search store and upload the bundled dataset:
+
+```bash
 npm run generate:dataset
 npm run bootstrap:gemini
 npm run dev
 ```
 
-## 検証
+`scripts/bootstrap-file-search.mjs` creates a File Search store using `models/gemini-embedding-2`, uploads all six dataset files with custom metadata, and writes the resulting `GEMINI_FILE_SEARCH_STORE` value to `.env.local`.
+
+## 🧠 Model Fallback
+
+`GEMINI_MODELS` accepts a comma-separated fallback chain. `/api/query` tries each configured Gemini model in order when quota or high-demand errors are retryable:
+
+- `RESOURCE_EXHAUSTED`
+- `UNAVAILABLE`
+- HTTP `429`
+- HTTP `503`
+
+Gemma 4 models may appear in Gemini API model listings, but this demo uses Gemini models because the File Search tool is the target feature.
+
+## 🧪 Validation
 
 ```bash
 npm run check
+npm run build
 ```
 
-## Gemini File Search に接続する場合
+`npm run check` regenerates dataset images and builds the Vite app.
 
-公式ドキュメントでは File Search store 作成時に `models/gemini-embedding-2` を指定すると、テキストと画像を同じ store に入れて検索できます。2026-05-06 時点の公式 File Search ガイドでは、画像・マルチモーダル embedding は `gemini-embedding-2`、音声と動画は未対応です。
+## 🌐 GitHub Pages
 
-接続時の想定フロー:
+This repository includes a GitHub Pages workflow. The Pages build sets `GITHUB_PAGES=true`, which changes the Vite base path to `/nekoneko-file-search-demo/`.
 
-1. `GEMINI_API_KEY` を設定する
-2. `models/gemini-embedding-2` で File Search store を作る
-3. `public/dataset/images/*.png` と `public/dataset/docs/*` をアップロードする
-4. `npm run dev` でローカル API サーバー経由の `models.generateContent` + `fileSearch` tool 呼び出しを使う
+The published static site can demonstrate the mock UI without secrets. Live Gemini File Search requires the local Express API proxy so API keys are never shipped to the browser.
 
-この repo は API キーをコミットしない前提です。
+## 🗂️ Repository Layout
 
-`GEMINI_MODELS` には File Search 対応モデルをカンマ区切りで指定できます。先頭のモデルで quota や一時高負荷が出た場合、次のモデルへ自動フォールバックします。Gemma 4 は Gemini API 上では `generateContent` に見えますが、File Search tool の対応モデルではないため、このデモでは Gemini 系モデルを使います。
+```text
+assets/                         Project logo and public-facing visual identity
+public/dataset/images/           PNG demo image files
+public/dataset/docs/             Text and JSON demo files
+scripts/bootstrap-file-search.mjs Gemini File Search store bootstrapper
+scripts/generate-dataset-images.mjs Deterministic image fixture generator
+server/index.mjs                 Local Gemini API proxy
+src/                             React application
+.github/workflows/               CI and Pages deployment
+```
+
+## 🔐 Security Notes
+
+- Do not commit `.env.local`.
+- Keep `GEMINI_API_KEY` server-side.
+- The local API proxy is intended for demos and development, not for a hardened production deployment.
+
+## 📦 Release
+
+Latest release: [v1.0.0](https://github.com/Sunwood-ai-labs/nekoneko-file-search-demo/releases/tag/v1.0.0)
+
+## 📄 License
+
+MIT License. See [LICENSE](./LICENSE).

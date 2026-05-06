@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { access, mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -63,7 +63,16 @@ for (const card of cards) {
   const pngPath = resolve(outDir, card.file);
   await mkdir(dirname(svgPath), { recursive: true });
   await writeFile(svgPath, svg(card), 'utf8');
-  await execFileAsync('sips', ['-s', 'format', 'png', svgPath, '--out', pngPath]);
+  try {
+    await execFileAsync('sips', ['-s', 'format', 'png', svgPath, '--out', pngPath]);
+  } catch (error) {
+    try {
+      await access(pngPath);
+      console.warn(`sips is unavailable; kept existing fixture ${pngPath}`);
+    } catch {
+      throw error;
+    }
+  }
 }
 
 console.log(`Generated ${cards.length} dataset images in ${outDir}`);
