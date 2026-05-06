@@ -539,3 +539,18 @@ textarea {
     border-bottom: 2px solid #1d211d;
   }
 }
+
+@media (max-width: 640px) {
+  .dataset-toggle {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .dataset-toggle strong {
+    font-size: 30px;
+  }
+
+  .dataset-toggle-meta {
+    align-self: flex-end;
+  }
+}
