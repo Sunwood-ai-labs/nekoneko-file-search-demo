@@ -279,6 +279,24 @@ textarea {
 
 .api-citation {
   grid-template-rows: 1fr;
+  min-height: 230px;
+}
+
+.citation-button {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+
+.citation-button:hover .citation-card {
+  background: #fbf0cf;
+  box-shadow: 6px 6px 0 #1d211d;
+  transform: translate(-2px, -2px);
 }
 
 .citation-card {
@@ -325,6 +343,10 @@ textarea {
 }
 
 .citation-body p {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
   font-family: ui-sans-serif, 'Hiragino Sans', sans-serif;
   font-size: 14px;
   line-height: 1.65;
@@ -335,9 +357,16 @@ textarea {
 }
 
 .chips span {
+  max-width: 100%;
   border: 1px solid #1d211d;
   padding: 3px 7px;
   background: #e7d775;
+  overflow-wrap: anywhere;
+}
+
+.compact-chips {
+  max-height: 72px;
+  overflow: hidden;
 }
 
 .citation-body small {
@@ -373,6 +402,90 @@ textarea {
 
 .dataset-row small {
   font-family: ui-sans-serif, 'Hiragino Sans', sans-serif;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background: rgba(29, 33, 29, 0.52);
+}
+
+.citation-modal {
+  width: min(920px, 100%);
+  max-height: min(820px, 92vh);
+  overflow: auto;
+  border: 2px solid #1d211d;
+  background: #fff8e9;
+  box-shadow: 12px 12px 0 #1d211d;
+}
+
+.citation-modal header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px;
+  border-bottom: 2px solid #1d211d;
+  background: #fff8e9;
+}
+
+.citation-modal h2 {
+  margin-bottom: 0;
+  font-size: 28px;
+  line-height: 1.2;
+}
+
+.icon-button {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 2px solid #1d211d;
+  background: #e7d775;
+  color: #1d211d;
+}
+
+.modal-image {
+  display: block;
+  width: min(620px, calc(100% - 40px));
+  max-height: 420px;
+  object-fit: contain;
+  margin: 20px auto 0;
+  border: 2px solid #1d211d;
+  background: #f4efe2;
+}
+
+.modal-section {
+  padding: 20px;
+  border-top: 1px solid #1d211d;
+}
+
+.modal-section h3 {
+  margin-bottom: 10px;
+  font-family: ui-sans-serif, 'Hiragino Sans', sans-serif;
+  font-size: 14px;
+  text-transform: uppercase;
+}
+
+.modal-section pre {
+  max-height: 280px;
+  overflow: auto;
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: ui-sans-serif, 'Hiragino Sans', sans-serif;
+  line-height: 1.65;
+}
+
+.long-code {
+  display: block;
+  overflow-wrap: anywhere;
 }
 
 @media (max-width: 900px) {

@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import express from 'express';
 import { GoogleGenAI } from '@google/genai';
+import { datasetFiles } from '../src/data/files.ts';
 
 dotenv.config({ path: '.env.local' });
 dotenv.config();
@@ -33,11 +34,14 @@ function metadataFilter(filters) {
 function citationFromChunk(chunk) {
   const context = chunk?.retrievedContext;
   if (!context) return null;
+  const sourceFile = datasetFiles.find((file) => file.displayName === context.title);
   return {
     title: context.title,
     text: context.text,
     uri: context.uri,
     mediaId: context.mediaId,
+    localPath: sourceFile?.filePath.replace(/^public/, ''),
+    kind: sourceFile?.metadata.kind?.toString(),
     pageNumber: context.pageNumber,
     fileSearchStore: context.fileSearchStore,
     customMetadata: context.customMetadata,

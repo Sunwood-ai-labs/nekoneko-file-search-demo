@@ -13,6 +13,8 @@ export type GeminiCitation = {
   text?: string;
   uri?: string;
   mediaId?: string;
+  localPath?: string;
+  kind?: string;
   pageNumber?: number;
   fileSearchStore?: string;
   customMetadata?: Array<{

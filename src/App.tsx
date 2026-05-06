@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, BookOpen, Boxes, Database, Filter, Image as ImageIcon, Send, Sparkles } from 'lucide-react';
+import { AlertTriangle, BookOpen, Boxes, Database, FileText, Filter, Image as ImageIcon, Send, Sparkles, X } from 'lucide-react';
 import { dataset, prompts, type DatasetItem } from './data/catalog';
 import { composeAnswer, searchDataset, type SearchFilters } from './lib/mockSearch';
 import type { GeminiQueryResponse, GeminiStatus } from './lib/geminiTypes';
@@ -39,26 +39,77 @@ function CitationCard({ item, score, reason }: { item: DatasetItem; score: numbe
 }
 
 function GeminiCitationCard({ citation }: { citation: NonNullable<GeminiQueryResponse['citations'][number]> }) {
+  const metadata = citation.customMetadata ?? [];
+  const sourceType = citation.kind ?? (citation.mediaId ? 'image' : 'document');
+  const sourceLabel = sourceType === 'image' ? '画像' : '文書';
+  const shortMediaId = citation.mediaId?.split('/').pop()?.slice(-16);
+
   return (
     <article className="citation-card api-citation">
       <div className="citation-body">
         <div className="citation-topline">
-          <span>{citation.mediaId ? 'media citation' : 'retrieved context'}</span>
-          <strong>API</strong>
+          <span>{sourceLabel} citation</span>
+          <strong>{sourceType}</strong>
         </div>
         <h3>{citation.title ?? 'Gemini File Search citation'}</h3>
-        <p>{citation.text ?? citation.uri ?? citation.fileSearchStore ?? 'Gemini returned grounding metadata for this source.'}</p>
-        <div className="chips">
-          {citation.mediaId ? <span>media_id: {citation.mediaId}</span> : null}
+        <p>{citation.text ?? (citation.mediaId ? '画像そのものが検索根拠として返されました。' : 'Gemini returned grounding metadata for this source.')}</p>
+        <div className="chips compact-chips">
+          {shortMediaId ? <span>media: ...{shortMediaId}</span> : null}
           {citation.pageNumber ? <span>page: {citation.pageNumber}</span> : null}
-          {citation.customMetadata?.map((metadata) => (
-            <span key={`${metadata.key}-${metadata.stringValue ?? metadata.numericValue}`}>
-              {metadata.key}: {metadata.stringValue ?? metadata.numericValue}
-            </span>
+          {metadata.slice(0, 4).map((item) => (
+            <span key={`${item.key}-${item.stringValue ?? item.numericValue}`}>{item.key}: {item.stringValue ?? item.numericValue}</span>
           ))}
         </div>
       </div>
     </article>
+  );
+}
+
+function CitationDetailModal({
+  citation,
+  onClose,
+}: {
+  citation: GeminiQueryResponse['citations'][number];
+  onClose: () => void;
+}) {
+  const metadata = citation.customMetadata ?? [];
+  return (
+    <div className="modal-backdrop" role="presentation" onClick={onClose}>
+      <section className="citation-modal" role="dialog" aria-modal="true" aria-label="引用文献の詳細" onClick={(event) => event.stopPropagation()}>
+        <header>
+          <div>
+            <p className="eyebrow">{citation.mediaId ? <ImageIcon size={16} /> : <FileText size={16} />} citation detail</p>
+            <h2>{citation.title ?? 'Gemini File Search citation'}</h2>
+          </div>
+          <button type="button" className="icon-button" onClick={onClose} aria-label="閉じる">
+            <X size={22} />
+          </button>
+        </header>
+
+        {citation.localPath && citation.kind === 'image' ? <img className="modal-image" src={citation.localPath} alt={citation.title ?? 'citation image'} /> : null}
+
+        <div className="modal-section">
+          <h3>中身</h3>
+          <pre>{citation.text ?? (citation.mediaId ? 'この画像が Gemini File Search の根拠として返されました。' : citation.uri ?? citation.fileSearchStore ?? '')}</pre>
+        </div>
+
+        {citation.mediaId ? (
+          <div className="modal-section">
+            <h3>media_id</h3>
+            <code className="long-code">{citation.mediaId}</code>
+          </div>
+        ) : null}
+
+        <div className="modal-section">
+          <h3>metadata</h3>
+          <div className="chips">
+            {metadata.map((item) => (
+              <span key={`${item.key}-${item.stringValue ?? item.numericValue}`}>{item.key}: {item.stringValue ?? item.numericValue}</span>
+            ))}
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }
 
@@ -68,6 +119,7 @@ export default function App() {
   const [filters, setFilters] = useState<SearchFilters>({ department: 'all', status: 'all', year: 'all' });
   const [status, setStatus] = useState<GeminiStatus | null>(null);
   const [apiResponse, setApiResponse] = useState<GeminiQueryResponse | null>(null);
+  const [selectedCitation, setSelectedCitation] = useState<GeminiQueryResponse['citations'][number] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const requestIdRef = useRef(0);
@@ -226,7 +278,11 @@ export default function App() {
           <p className="answer">{answer}</p>
           <div className="citation-grid">
             {usingGemini
-              ? apiResponse.citations.map((citation, index) => <GeminiCitationCard key={index} citation={citation} />)
+              ? apiResponse.citations.map((citation, index) => (
+                  <button type="button" className="citation-button" key={index} onClick={() => setSelectedCitation(citation)}>
+                    <GeminiCitationCard citation={citation} />
+                  </button>
+                ))
               : mockCitations.map(({ item, score, reason }) => (
                   <CitationCard key={item.id} item={item} score={score} reason={reason} />
                 ))}
@@ -248,6 +304,7 @@ export default function App() {
           ))}
         </div>
       </section>
+      {selectedCitation ? <CitationDetailModal citation={selectedCitation} onClose={() => setSelectedCitation(null)} /> : null}
     </main>
   );
 }
