@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, BookOpen, Boxes, Database, FileText, Filter, Image as ImageIcon, Send, Sparkles, X } from 'lucide-react';
+import { AlertTriangle, BookOpen, Boxes, ChevronDown, Database, FileText, Filter, Image as ImageIcon, Send, Sparkles, X } from 'lucide-react';
 import { dataset, prompts, type DatasetItem } from './data/catalog';
 import { composeAnswer, searchDataset, type SearchFilters } from './lib/mockSearch';
 import type { GeminiQueryResponse, GeminiStatus } from './lib/geminiTypes';
@@ -120,6 +120,7 @@ export default function App() {
   const [status, setStatus] = useState<GeminiStatus | null>(null);
   const [apiResponse, setApiResponse] = useState<GeminiQueryResponse | null>(null);
   const [selectedCitation, setSelectedCitation] = useState<GeminiQueryResponse['citations'][number] | null>(null);
+  const [datasetOpen, setDatasetOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const requestIdRef = useRef(0);
@@ -291,18 +292,26 @@ export default function App() {
       </section>
 
       <section className="dataset-band">
-        <div>
-          <p className="eyebrow"><ImageIcon size={16} /> demo dataset</p>
-          <h2>アップロード想定ファイル</h2>
-        </div>
-        <div className="dataset-list">
-          {dataset.map((item) => (
-            <a href={item.path} key={item.id} className="dataset-row">
-              <span>{item.title}</span>
-              <small>{item.department} / {item.status} / {item.mediaId ?? `page ${item.page}`}</small>
-            </a>
-          ))}
-        </div>
+        <button type="button" className="dataset-toggle" onClick={() => setDatasetOpen((current) => !current)} aria-expanded={datasetOpen}>
+          <span>
+            <span className="eyebrow"><ImageIcon size={16} /> demo dataset</span>
+            <strong>アップロード想定ファイル</strong>
+          </span>
+          <span className="dataset-toggle-meta">
+            {dataset.length} files
+            <ChevronDown size={22} className={datasetOpen ? 'open' : ''} />
+          </span>
+        </button>
+        {datasetOpen ? (
+          <div className="dataset-list">
+            {dataset.map((item) => (
+              <a href={item.path} key={item.id} className="dataset-row">
+                <span>{item.title}</span>
+                <small>{item.department} / {item.status} / {item.mediaId ?? `page ${item.page}`}</small>
+              </a>
+            ))}
+          </div>
+        ) : null}
       </section>
       {selectedCitation ? <CitationDetailModal citation={selectedCitation} onClose={() => setSelectedCitation(null)} /> : null}
     </main>

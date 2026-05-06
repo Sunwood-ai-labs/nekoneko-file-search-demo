@@ -378,11 +378,46 @@ textarea {
 
 .dataset-band {
   display: grid;
-  grid-template-columns: minmax(240px, 340px) 1fr;
   gap: 24px;
   padding: 36px clamp(20px, 5vw, 72px) 56px;
   border-top: 2px solid #1d211d;
   background: #c9d8d3;
+}
+
+.dataset-toggle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border: 0;
+  border-bottom: 2px solid #1d211d;
+  padding: 0 0 16px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+
+.dataset-toggle strong {
+  display: block;
+  font-size: 34px;
+  line-height: 1.15;
+}
+
+.dataset-toggle-meta {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 10px;
+  border: 2px solid #1d211d;
+  padding: 8px 12px;
+  background: #fff8e9;
+  font-family: ui-sans-serif, 'Hiragino Sans', sans-serif;
+  font-weight: 800;
+}
+
+.dataset-toggle svg.open {
+  transform: rotate(180deg);
 }
 
 .dataset-list {
