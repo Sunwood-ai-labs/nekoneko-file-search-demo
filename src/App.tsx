@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, BookOpen, Boxes, Database, Filter, Image as ImageIcon, Search, Sparkles } from 'lucide-react';
 import { dataset, prompts, type DatasetItem } from './data/catalog';
 import { composeAnswer, searchDataset, type SearchFilters } from './lib/mockSearch';
@@ -69,10 +69,13 @@ export default function App() {
   const [apiResponse, setApiResponse] = useState<GeminiQueryResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const requestIdRef = useRef(0);
   const mockCitations = useMemo(() => searchDataset(query, filters), [query, filters]);
   const mockAnswer = useMemo(() => composeAnswer(query, mockCitations), [query, mockCitations]);
   const usingGemini = status?.configured && apiResponse?.mode === 'gemini';
-  const answer = usingGemini ? apiResponse.answer : mockAnswer;
+  const answer = status?.configured
+    ? apiResponse?.answer ?? 'Gemini File Search の回答を待っています。'
+    : mockAnswer;
 
   useEffect(() => {
     fetch('/api/status')
@@ -83,9 +86,12 @@ export default function App() {
 
   useEffect(() => {
     if (!status?.configured) return;
+    const requestId = requestIdRef.current + 1;
+    requestIdRef.current = requestId;
     const controller = new AbortController();
     setIsLoading(true);
     setError('');
+    setApiResponse(null);
     fetch('/api/query', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -97,13 +103,18 @@ export default function App() {
         if (!response.ok) throw new Error(payload.error ?? 'Gemini API request failed.');
         return payload as GeminiQueryResponse;
       })
-      .then(setApiResponse)
+      .then((payload) => {
+        if (requestId === requestIdRef.current) setApiResponse(payload);
+      })
       .catch((apiError) => {
         if (apiError.name === 'AbortError') return;
+        if (requestId !== requestIdRef.current) return;
         setError(apiError.message);
         setApiResponse(null);
       })
-      .finally(() => setIsLoading(false));
+      .finally(() => {
+        if (requestId === requestIdRef.current) setIsLoading(false);
+      });
     return () => controller.abort();
   }, [query, filters, status?.configured]);
 
