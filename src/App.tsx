@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react';
-import { BookOpen, Boxes, Database, Filter, Image as ImageIcon, Search, Sparkles } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { AlertTriangle, BookOpen, Boxes, Database, Filter, Image as ImageIcon, Search, Sparkles } from 'lucide-react';
 import { dataset, prompts, type DatasetItem } from './data/catalog';
 import { composeAnswer, searchDataset, type SearchFilters } from './lib/mockSearch';
+import type { GeminiQueryResponse, GeminiStatus } from './lib/geminiTypes';
 import './styles.css';
 
 const departments: Array<SearchFilters['department']> = ['all', 'support', 'product', 'legal', 'store'];
@@ -37,11 +38,74 @@ function CitationCard({ item, score, reason }: { item: DatasetItem; score: numbe
   );
 }
 
+function GeminiCitationCard({ citation }: { citation: NonNullable<GeminiQueryResponse['citations'][number]> }) {
+  return (
+    <article className="citation-card api-citation">
+      <div className="citation-body">
+        <div className="citation-topline">
+          <span>{citation.mediaId ? 'media citation' : 'retrieved context'}</span>
+          <strong>API</strong>
+        </div>
+        <h3>{citation.title ?? 'Gemini File Search citation'}</h3>
+        <p>{citation.text ?? citation.uri ?? citation.fileSearchStore ?? 'Gemini returned grounding metadata for this source.'}</p>
+        <div className="chips">
+          {citation.mediaId ? <span>media_id: {citation.mediaId}</span> : null}
+          {citation.pageNumber ? <span>page: {citation.pageNumber}</span> : null}
+          {citation.customMetadata?.map((metadata) => (
+            <span key={`${metadata.key}-${metadata.stringValue ?? metadata.numericValue}`}>
+              {metadata.key}: {metadata.stringValue ?? metadata.numericValue}
+            </span>
+          ))}
+        </div>
+      </div>
+    </article>
+  );
+}
+
 export default function App() {
   const [query, setQuery] = useState(prompts[0]);
   const [filters, setFilters] = useState<SearchFilters>({ department: 'all', status: 'all', year: 'all' });
-  const citations = useMemo(() => searchDataset(query, filters), [query, filters]);
-  const answer = useMemo(() => composeAnswer(query, citations), [query, citations]);
+  const [status, setStatus] = useState<GeminiStatus | null>(null);
+  const [apiResponse, setApiResponse] = useState<GeminiQueryResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const mockCitations = useMemo(() => searchDataset(query, filters), [query, filters]);
+  const mockAnswer = useMemo(() => composeAnswer(query, mockCitations), [query, mockCitations]);
+  const usingGemini = status?.configured && apiResponse?.mode === 'gemini';
+  const answer = usingGemini ? apiResponse.answer : mockAnswer;
+
+  useEffect(() => {
+    fetch('/api/status')
+      .then((response) => response.json())
+      .then(setStatus)
+      .catch(() => setStatus({ mode: 'mock', configured: false, model: 'unknown', message: 'API server is not reachable.' }));
+  }, []);
+
+  useEffect(() => {
+    if (!status?.configured) return;
+    const controller = new AbortController();
+    setIsLoading(true);
+    setError('');
+    fetch('/api/query', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, filters }),
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error ?? 'Gemini API request failed.');
+        return payload as GeminiQueryResponse;
+      })
+      .then(setApiResponse)
+      .catch((apiError) => {
+        if (apiError.name === 'AbortError') return;
+        setError(apiError.message);
+        setApiResponse(null);
+      })
+      .finally(() => setIsLoading(false));
+    return () => controller.abort();
+  }, [query, filters, status?.configured]);
 
   return (
     <main>
@@ -57,7 +121,7 @@ export default function App() {
         <div className="store-meter" aria-label="dataset summary">
           <Database size={28} />
           <strong>{dataset.length}</strong>
-          <span>demo files</span>
+          <span>{status?.configured ? 'Gemini files' : 'demo files'}</span>
         </div>
       </section>
 
@@ -129,13 +193,22 @@ export default function App() {
               <p className="eyebrow"><Boxes size={16} /> grounded response</p>
               <h2>回答</h2>
             </div>
-            <span>{citations.length} citations</span>
+            <span>{status?.configured ? 'Gemini API' : 'mock mode'}</span>
           </div>
+          <div className={`api-status ${status?.configured ? 'ok' : 'warn'}`}>
+            {status?.configured ? <Sparkles size={16} /> : <AlertTriangle size={16} />}
+            <span>{status?.message ?? 'Checking Gemini API status...'}</span>
+            {status?.storeName ? <code>{status.storeName}</code> : null}
+          </div>
+          {error ? <div className="api-status warn"><AlertTriangle size={16} /><span>{error}</span></div> : null}
+          {isLoading ? <p className="loading-line">Gemini File Search に問い合わせ中...</p> : null}
           <p className="answer">{answer}</p>
           <div className="citation-grid">
-            {citations.map(({ item, score, reason }) => (
-              <CitationCard key={item.id} item={item} score={score} reason={reason} />
-            ))}
+            {usingGemini
+              ? apiResponse.citations.map((citation, index) => <GeminiCitationCard key={index} citation={citation} />)
+              : mockCitations.map(({ item, score, reason }) => (
+                  <CitationCard key={item.id} item={item} score={score} reason={reason} />
+                ))}
           </div>
         </section>
       </section>

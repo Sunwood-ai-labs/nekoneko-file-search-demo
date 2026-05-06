@@ -15,6 +15,7 @@ Gemini API File Search の「画像も含むマルチモーダルRAG」を説明
 ```bash
 npm install
 npm run generate:dataset
+npm run bootstrap:gemini
 npm run dev
 ```
 
@@ -33,6 +34,6 @@ npm run check
 1. `GEMINI_API_KEY` を設定する
 2. `models/gemini-embedding-2` で File Search store を作る
 3. `public/dataset/images/*.png` と `public/dataset/docs/*` をアップロードする
-4. UI 側の mock 検索を、`@google/genai` の `models.generateContent` + `fileSearch` tool 呼び出しに差し替える
+4. `npm run dev` でローカル API サーバー経由の `models.generateContent` + `fileSearch` tool 呼び出しを使う
 
 この repo は API キーをコミットしない前提です。

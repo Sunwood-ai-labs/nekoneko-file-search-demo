@@ -1,6 +1,8 @@
 node_modules
 dist
 .env
+.env.local
 .DS_Store
 .tmp-dataset-svg
 tsconfig.tsbuildinfo
+tmp

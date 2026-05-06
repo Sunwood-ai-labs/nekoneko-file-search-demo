@@ -221,10 +221,45 @@ textarea {
   line-height: 1.75;
 }
 
+.api-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin: 16px 0;
+  padding: 10px 12px;
+  border: 2px solid #1d211d;
+  font-family: ui-sans-serif, 'Hiragino Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.api-status.ok {
+  background: #d5e1d4;
+}
+
+.api-status.warn {
+  background: #e7d775;
+}
+
+.api-status code {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.loading-line {
+  font-family: ui-sans-serif, 'Hiragino Sans', sans-serif;
+  font-weight: 800;
+}
+
 .citation-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 14px;
+}
+
+.api-citation {
+  grid-template-rows: 1fr;
 }
 
 .citation-card {
