@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, BookOpen, Boxes, Database, Filter, Image as ImageIcon, Search, Sparkles } from 'lucide-react';
+import { AlertTriangle, BookOpen, Boxes, Database, Filter, Image as ImageIcon, Send, Sparkles } from 'lucide-react';
 import { dataset, prompts, type DatasetItem } from './data/catalog';
 import { composeAnswer, searchDataset, type SearchFilters } from './lib/mockSearch';
 import type { GeminiQueryResponse, GeminiStatus } from './lib/geminiTypes';
@@ -63,6 +63,7 @@ function GeminiCitationCard({ citation }: { citation: NonNullable<GeminiQueryRes
 }
 
 export default function App() {
+  const [draftQuery, setDraftQuery] = useState(prompts[0]);
   const [query, setQuery] = useState(prompts[0]);
   const [filters, setFilters] = useState<SearchFilters>({ department: 'all', status: 'all', year: 'all' });
   const [status, setStatus] = useState<GeminiStatus | null>(null);
@@ -83,6 +84,12 @@ export default function App() {
       .then(setStatus)
       .catch(() => setStatus({ mode: 'mock', configured: false, model: 'unknown', message: 'API server is not reachable.' }));
   }, []);
+
+  function submitQuery() {
+    const nextQuery = draftQuery.trim();
+    if (!nextQuery) return;
+    setQuery(nextQuery);
+  }
 
   useEffect(() => {
     if (!status?.configured) return;
@@ -139,13 +146,16 @@ export default function App() {
       <section className="workspace">
         <aside className="control-panel">
           <label className="search-box">
-            <Search size={18} />
-            <textarea value={query} onChange={(event) => setQuery(event.target.value)} rows={4} />
+            <textarea value={draftQuery} onChange={(event) => setDraftQuery(event.target.value)} rows={4} />
+            <button type="button" className="send-button" onClick={submitQuery} disabled={!draftQuery.trim() || isLoading}>
+              <Send size={18} />
+              <span>{isLoading ? '送信中' : '送信'}</span>
+            </button>
           </label>
 
           <div className="prompt-row">
             {prompts.map((prompt) => (
-              <button key={prompt} type="button" onClick={() => setQuery(prompt)}>
+              <button key={prompt} type="button" onClick={() => setDraftQuery(prompt)}>
                 {prompt}
               </button>
             ))}

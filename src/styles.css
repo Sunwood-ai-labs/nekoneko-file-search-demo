@@ -113,8 +113,8 @@ code {
 
 .search-box {
   display: grid;
-  grid-template-columns: 22px 1fr;
-  gap: 10px;
+  grid-template-columns: 1fr;
+  gap: 12px;
   padding: 16px;
   border: 2px solid #1d211d;
   background: #fff8e9;
@@ -128,6 +128,25 @@ textarea {
   background: transparent;
   color: inherit;
   line-height: 1.6;
+}
+
+.send-button {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 42px;
+  align-items: center;
+  gap: 8px;
+  border: 2px solid #1d211d;
+  padding: 0 16px;
+  background: #1d211d;
+  color: #fff8e9;
+  font-family: ui-sans-serif, 'Hiragino Sans', sans-serif;
+  font-weight: 800;
+}
+
+.send-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
 }
 
 .prompt-row {
