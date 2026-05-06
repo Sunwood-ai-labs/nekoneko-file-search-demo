@@ -37,3 +37,5 @@ npm run check
 4. `npm run dev` でローカル API サーバー経由の `models.generateContent` + `fileSearch` tool 呼び出しを使う
 
 この repo は API キーをコミットしない前提です。
+
+`GEMINI_MODELS` には File Search 対応モデルをカンマ区切りで指定できます。先頭のモデルで quota や一時高負荷が出た場合、次のモデルへ自動フォールバックします。Gemma 4 は Gemini API 上では `generateContent` に見えますが、File Search tool の対応モデルではないため、このデモでは Gemini 系モデルを使います。

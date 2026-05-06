@@ -7,7 +7,16 @@ dotenv.config();
 
 const app = express();
 const port = Number(process.env.API_PORT ?? 8787);
-const model = process.env.GEMINI_MODEL ?? process.env.VITE_GEMINI_MODEL ?? 'gemini-2.5-flash-lite';
+const configuredModels = (
+  process.env.GEMINI_MODELS ??
+  process.env.GEMINI_MODEL ??
+  process.env.VITE_GEMINI_MODEL ??
+  'gemini-3.1-flash-lite-preview,gemini-2.5-flash,gemini-2.5-pro,gemini-2.5-flash-lite'
+)
+  .split(',')
+  .map((entry) => entry.trim().replace(/^models\//, ''))
+  .filter(Boolean);
+const model = configuredModels[0] ?? 'gemini-3.1-flash-lite-preview';
 const storeName = process.env.GEMINI_FILE_SEARCH_STORE ?? process.env.VITE_GEMINI_FILE_SEARCH_STORE;
 const apiKey = process.env.GEMINI_API_KEY;
 
@@ -52,6 +61,18 @@ function formatGeminiError(error) {
   }
 }
 
+function isRetryableModelError(error) {
+  const rawMessage = error instanceof Error ? error.message : String(error);
+  try {
+    const parsed = JSON.parse(rawMessage);
+    const status = parsed.error?.status;
+    const code = parsed.error?.code;
+    return status === 'RESOURCE_EXHAUSTED' || status === 'UNAVAILABLE' || code === 429 || code === 503;
+  } catch {
+    return rawMessage.includes('RESOURCE_EXHAUSTED') || rawMessage.includes('UNAVAILABLE');
+  }
+}
+
 app.get('/api/status', (_request, response) => {
   response.json({
     mode: apiKey && storeName ? 'gemini' : 'mock',
@@ -81,20 +102,37 @@ File Searchの検索結果だけを根拠に、日本語で簡潔に回答して
 
 質問: ${request.body.query}`;
 
-    const geminiResponse = await ai.models.generateContent({
-      model,
-      contents: prompt,
-      config: {
-        tools: [
-          {
-            fileSearch: {
-              fileSearchStoreNames: [storeName],
-              ...(filter ? { metadataFilter: filter } : {}),
-            },
+    const triedModels = [];
+    let geminiResponse;
+    let lastError;
+    for (const candidateModel of configuredModels) {
+      triedModels.push(candidateModel);
+      try {
+        geminiResponse = await ai.models.generateContent({
+          model: candidateModel,
+          contents: prompt,
+          config: {
+            tools: [
+              {
+                fileSearch: {
+                  fileSearchStoreNames: [storeName],
+                  ...(filter ? { metadataFilter: filter } : {}),
+                },
+              },
+            ],
           },
-        ],
-      },
-    });
+        });
+        lastError = undefined;
+        break;
+      } catch (error) {
+        lastError = error;
+        if (!isRetryableModelError(error)) break;
+      }
+    }
+
+    if (!geminiResponse) {
+      throw lastError ?? new Error('Gemini API request failed.');
+    }
 
     const groundingMetadata = geminiResponse.candidates?.[0]?.groundingMetadata;
     const citations = groundingMetadata?.groundingChunks?.map(citationFromChunk).filter(Boolean) ?? [];
@@ -103,7 +141,8 @@ File Searchの検索結果だけを根拠に、日本語で簡潔に回答して
       answer: geminiResponse.text ?? '',
       citations,
       rawGroundingMetadata: groundingMetadata,
-      model,
+      model: triedModels.at(-1),
+      triedModels,
       storeName,
     });
   } catch (error) {
