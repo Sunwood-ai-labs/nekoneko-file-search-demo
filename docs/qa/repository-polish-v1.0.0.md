@@ -28,6 +28,19 @@
 | CI and Pages workflows exist and use correct commands | workflow inspection |
 | Static Pages build is supported without leaking Gemini keys | Vite base env and frontend mock fallback inspection |
 | GitHub metadata is updated | `gh repo view` |
-| GitHub Pages is enabled or blocker recorded | `gh api repos/.../pages` |
+| GitHub Pages is enabled and deployed | `gh api repos/.../pages`, `gh run list`, `curl -I -L https://sunwood-ai-labs.github.io/nekoneko-file-search-demo/` |
 | Validation passed | `npm run check`, `npm run build` |
 | Changes were committed and pushed | `git status -sb`, `git push` output |
+
+## Final QA Results
+
+| check | status | evidence |
+| --- | --- | --- |
+| Local validation | pass | `npm run check`; `GITHUB_PAGES=true npm run build` |
+| SVG validation | pass | `xmllint --noout assets/nekoneko-file-search-logo.svg` |
+| CI workflow | pass | GitHub Actions run `25442286239` completed with `success` for commit `c20b3f0` |
+| Pages workflow | pass | GitHub Actions run `25442286260` completed with `success` for commit `c20b3f0` |
+| Pages site | pass | `curl -I -L https://sunwood-ai-labs.github.io/nekoneko-file-search-demo/` returned HTTP 200 |
+| Pages assets | pass | `curl -I -L https://sunwood-ai-labs.github.io/nekoneko-file-search-demo/assets/index-BBa5JhDw.js` returned HTTP 200 |
+| Repository metadata | pass | Description, homepage, and topics confirmed with `gh repo view` |
+| Payload hygiene | pass | `find ... -size +500k` found no staged public-facing additions above the warning threshold |

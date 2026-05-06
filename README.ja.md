@@ -21,6 +21,8 @@ Nekoneko Company File Search Demo は、Gemini API File Search のマルチモ�
 - Gemini API サーバー未設定時の **ローカル mock モード**
 - `GEMINI_API_KEY` と File Search store 設定済みの **Gemini File Search モード**
 
+Live demo: [https://sunwood-ai-labs.github.io/nekoneko-file-search-demo/](https://sunwood-ai-labs.github.io/nekoneko-file-search-demo/)
+
 ## ✨ 特長
 
 - PNG 画像とテキスト文書を同じ UI で検索できます。
@@ -101,6 +103,8 @@ npm run build
 ## 🌐 GitHub Pages
 
 このリポジトリには GitHub Pages workflow が入っています。Pages build では `GITHUB_PAGES=true` を設定し、Vite の base path を `/nekoneko-file-search-demo/` に切り替えます。
+
+公開サイト: [https://sunwood-ai-labs.github.io/nekoneko-file-search-demo/](https://sunwood-ai-labs.github.io/nekoneko-file-search-demo/)
 
 公開された静的サイトでは、secret なしの mock UI を確認できます。実際の Gemini File Search は API キーをブラウザへ出さないため、ローカル Express API proxy 経由で使います。
 

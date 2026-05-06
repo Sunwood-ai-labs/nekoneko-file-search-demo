@@ -21,6 +21,8 @@ The app works in two modes:
 - **Local mock mode** when no Gemini API server is configured.
 - **Gemini File Search mode** when `GEMINI_API_KEY` and a File Search store are available.
 
+Live demo: [https://sunwood-ai-labs.github.io/nekoneko-file-search-demo/](https://sunwood-ai-labs.github.io/nekoneko-file-search-demo/)
+
 ## ✨ Highlights
 
 - Search across PNG images and text documents from one demo interface.
@@ -101,6 +103,8 @@ npm run build
 ## 🌐 GitHub Pages
 
 This repository includes a GitHub Pages workflow. The Pages build sets `GITHUB_PAGES=true`, which changes the Vite base path to `/nekoneko-file-search-demo/`.
+
+Published site: [https://sunwood-ai-labs.github.io/nekoneko-file-search-demo/](https://sunwood-ai-labs.github.io/nekoneko-file-search-demo/)
 
 The published static site can demonstrate the mock UI without secrets. Live Gemini File Search requires the local Express API proxy so API keys are never shipped to the browser.
 
