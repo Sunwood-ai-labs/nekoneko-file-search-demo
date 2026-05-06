@@ -35,6 +35,23 @@ function citationFromChunk(chunk) {
   };
 }
 
+function formatGeminiError(error) {
+  const rawMessage = error instanceof Error ? error.message : String(error);
+  try {
+    const parsed = JSON.parse(rawMessage);
+    const apiError = parsed.error;
+    if (!apiError) return { status: 500, message: rawMessage };
+    const retryInfo = apiError.details?.find((detail) => detail['@type']?.includes('RetryInfo'));
+    const retryDelay = retryInfo?.retryDelay ? ` Retry after ${retryInfo.retryDelay}.` : '';
+    return {
+      status: apiError.code === 429 ? 429 : 500,
+      message: `${apiError.status ?? 'GEMINI_ERROR'}: ${apiError.message}${retryDelay}`,
+    };
+  } catch {
+    return { status: 500, message: rawMessage };
+  }
+}
+
 app.get('/api/status', (_request, response) => {
   response.json({
     mode: apiKey && storeName ? 'gemini' : 'mock',
@@ -90,8 +107,9 @@ File Searchの検索結果だけを根拠に、日本語で簡潔に回答して
       storeName,
     });
   } catch (error) {
-    response.status(500).json({
-      error: error instanceof Error ? error.message : String(error),
+    const formatted = formatGeminiError(error);
+    response.status(formatted.status).json({
+      error: formatted.message,
     });
   }
 });
