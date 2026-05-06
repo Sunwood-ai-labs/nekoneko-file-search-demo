@@ -65,12 +65,18 @@ try {
 
 const retained = existing
   .split('\n')
-  .filter((line) => line.trim() && !line.startsWith('GEMINI_FILE_SEARCH_STORE=') && !line.startsWith('VITE_GEMINI_FILE_SEARCH_STORE=') && !line.startsWith('GEMINI_MODEL='));
+  .filter((line) =>
+    line.trim() &&
+    !line.startsWith('GEMINI_FILE_SEARCH_STORE=') &&
+    !line.startsWith('VITE_GEMINI_FILE_SEARCH_STORE=') &&
+    !line.startsWith('GEMINI_MODEL=') &&
+    !line.startsWith('GEMINI_MODELS=')
+  );
 
 const nextEnv = [
   ...retained,
   envLine('GEMINI_FILE_SEARCH_STORE', fileSearchStore.name),
-  envLine('GEMINI_MODEL', process.env.GEMINI_MODEL ?? 'gemini-2.5-flash-lite'),
+  envLine('GEMINI_MODELS', process.env.GEMINI_MODELS ?? process.env.GEMINI_MODEL ?? 'gemini-3.1-flash-lite-preview,gemini-2.5-flash,gemini-2.5-pro,gemini-2.5-flash-lite'),
   '',
 ].join('\n');
 
