@@ -1,0 +1,23 @@
+{
+  "company": "Nekoneko Company",
+  "updated": "2026-05-06",
+  "items": [
+    {
+      "sku": "NK-MINI-ORANGE",
+      "name": "にゃんサーバー Mini",
+      "color": "orange",
+      "signals": ["blue blinking LED means silent mode"]
+    },
+    {
+      "sku": "NK-CLOUD-PRO",
+      "name": "毛玉クラウド Pro",
+      "price_jpy_tax_included": 49800,
+      "warranty": "3 years for business contract"
+    },
+    {
+      "sku": "NK-TAIL-SENSOR",
+      "name": "しっぽセンサー",
+      "shipping": "UN3481 label required for air shipment when battery is included"
+    }
+  ]
+}
