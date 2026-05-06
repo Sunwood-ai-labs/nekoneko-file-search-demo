@@ -420,23 +420,67 @@ textarea {
   transform: rotate(180deg);
 }
 
-.dataset-list {
+.dataset-gallery {
   display: grid;
-  gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
 }
 
-.dataset-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 12px 0;
-  border-bottom: 1px solid #1d211d;
+.dataset-tile {
+  display: grid;
+  grid-template-rows: 190px 1fr;
+  min-width: 0;
+  border: 2px solid #1d211d;
+  background: #fff8e9;
   color: inherit;
   text-decoration: none;
 }
 
-.dataset-row small {
+.dataset-tile:hover {
+  box-shadow: 6px 6px 0 #1d211d;
+  transform: translate(-2px, -2px);
+}
+
+.dataset-preview {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-bottom: 2px solid #1d211d;
+  background: #f4efe2;
+}
+
+.dataset-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dataset-tile.document .dataset-preview {
+  background: #e7d775;
+}
+
+.dataset-tile-body {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 14px;
+}
+
+.dataset-tile-body strong {
+  font-size: 20px;
+  line-height: 1.25;
+}
+
+.dataset-tile-body p {
+  display: -webkit-box;
+  overflow: hidden;
+  min-height: 68px;
+  margin: 0;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
   font-family: ui-sans-serif, 'Hiragino Sans', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
 }
 
 .modal-backdrop {

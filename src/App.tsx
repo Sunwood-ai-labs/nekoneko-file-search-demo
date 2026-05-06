@@ -303,11 +303,22 @@ export default function App() {
           </span>
         </button>
         {datasetOpen ? (
-          <div className="dataset-list">
+          <div className="dataset-gallery">
             {dataset.map((item) => (
-              <a href={item.path} key={item.id} className="dataset-row">
-                <span>{item.title}</span>
-                <small>{item.department} / {item.status} / {item.mediaId ?? `page ${item.page}`}</small>
+              <a href={item.path} key={item.id} className={`dataset-tile ${item.type}`}>
+                <div className="dataset-preview">
+                  {item.type === 'image' ? <img src={item.path} alt={item.title} /> : <FileText size={36} />}
+                </div>
+                <div className="dataset-tile-body">
+                  <strong>{item.title}</strong>
+                  <p>{item.excerpt}</p>
+                  <div className="chips compact-chips">
+                    <span>{item.department}</span>
+                    <span>{item.status}</span>
+                    <span>{item.year}</span>
+                    <span>{item.mediaId ?? `page ${item.page}`}</span>
+                  </div>
+                </div>
               </a>
             ))}
           </div>
