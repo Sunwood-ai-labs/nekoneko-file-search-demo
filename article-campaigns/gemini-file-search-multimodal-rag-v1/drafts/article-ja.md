@@ -27,9 +27,9 @@ Googleの発表で大きく取り上げられている変更は、主に3つで�
 
 この変化を体感できるように、架空の会社「ねこねこカンパニー」のデモアプリを作りました。
 
-- GitHub: [https://github.com/Sunwood-ai-labs/nekoneko-file-search-demo](https://github.com/Sunwood-ai-labs/nekoneko-file-search-demo)
-- Live demo: [https://sunwood-ai-labs.github.io/nekoneko-file-search-demo/](https://sunwood-ai-labs.github.io/nekoneko-file-search-demo/)
-- Release: [https://github.com/Sunwood-ai-labs/nekoneko-file-search-demo/releases/tag/v1.0.0](https://github.com/Sunwood-ai-labs/nekoneko-file-search-demo/releases/tag/v1.0.0)
+- [GitHubリポジトリ](https://github.com/Sunwood-ai-labs/nekoneko-file-search-demo)
+- [公開デモ](https://sunwood-ai-labs.github.io/nekoneko-file-search-demo/)
+- [v1.0.0リリース](https://github.com/Sunwood-ai-labs/nekoneko-file-search-demo/releases/tag/v1.0.0)
 
 データセットは小さいですが、RAGでよく起きる悩みを一通り入れています。
 
@@ -109,7 +109,7 @@ const citations = groundingMetadata?.groundingChunks
 
 デモ動画はXに投稿しています。
 
-[https://x.com/hAru_mAki_ch/status/2052031244666556447](https://x.com/hAru_mAki_ch/status/2052031244666556447)
+[Xでデモ動画を見る](https://x.com/hAru_mAki_ch/status/2052031244666556447)
 
 実際のアプリ画面はこんな雰囲気です。質問を送ると、Gemini API File Searchの回答、文書citation、画像citation、metadataが同じ画面で確認できます。
 
