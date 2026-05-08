@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>Article Draft</title>
+<style>
+  body { margin: 40px; color: #111; background: #fff; font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; line-height: 1.9; }
+  article { max-width: 720px; }
+  h2 { font-size: 1.55rem; margin: 2.4em 0 0.8em; font-weight: 700; }
+  h3 { font-size: 1.25rem; margin: 2em 0 0.6em; font-weight: 700; }
+  p { margin: 1.1em 0; }
+  pre { margin: 1.2em 0; padding: 1em; background: #f6f8fa; border-radius: 6px; overflow-x: auto; line-height: 1.55; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.95em; }
+  blockquote { margin: 1.2em 0; padding-left: 1em; border-left: 4px solid #ddd; color: #444; }
+  ul, ol { margin: 1em 0 1em 1.4em; }
+</style>
+</head>
+<body>
+<article>
+<p>Gemini API File Search has evolved into RAG that can search across images as well as text.</p>
+<p>The interesting part is not simply that Gemini can understand images. That was already possible. What changed is that image embeddings, retrieval, metadata filtering, and citations are now part of the managed File Search store workflow for RAG.</p>
+<p>Previously, if you wanted to build an internal search or product-support search system that included images, you often had to create image embeddings yourself, store them in a vector database, retrieve them separately from text documents, and then build your own citation layer to show which image supported the answer. With this update, a much larger part of that plumbing can move into File Search.</p>
+<h2>What Changed</h2>
+<p>Google highlights three major changes:</p>
+<ol>
+<li>Images can be added to a File Search store.</li>
+</ol>
+<p>PNG and JPEG images can now participate in the same retrieval experience as text documents.</p>
+<ol>
+<li>Custom metadata can narrow the search scope.</li>
+</ol>
+<p>Operational labels such as <code>department</code>, <code>status</code>, and <code>year</code> can be used to filter what the model retrieves.</p>
+<ol>
+<li>Citations are more precise.</li>
+</ol>
+<p>For PDFs and documents, citations can point to page-level evidence. For images, grounding metadata can include <code>media_id</code>, which makes it much easier to show the exact image used as evidence in a product UI.</p>
+<p>The File Search documentation explains that multimodal File Search stores should use <code>models/gemini-embedding-2</code> instead of the default text-focused embedding model. For images, PNG and JPEG are supported, and when an image chunk contributes to the answer, the grounding metadata can return a <code>media_id</code>.</p>
+<p>In other words, this is not just “call a vision-capable LLM.” It is an update for building product-grade RAG where images, documents, metadata, and citations all belong to the same managed retrieval flow.</p>
+<h2>I Built a Neko Neko Company Demo</h2>
+<p>To make the change easier to feel, I built a demo app around a fictional company called Neko Neko Company.</p>
+<ul>
+<li>GitHub: https://github.com/Sunwood-ai-labs/nekoneko-file-search-demo</li>
+<li>Live demo: https://sunwood-ai-labs.github.io/nekoneko-file-search-demo/</li>
+<li>Release: https://github.com/Sunwood-ai-labs/nekoneko-file-search-demo/releases/tag/v1.0.0</li>
+</ul>
+<p>The dataset is small, but it includes the kinds of mixed assets that often make real-world RAG messy:</p>
+<ul>
+<li>Nyan Server Mini product photo</li>
+</ul>
+<p>PNG image. <code>department: product</code>, <code>status: final</code>, <code>year: 2026</code></p>
+<ul>
+<li>Kedama Cloud Pro shelf label</li>
+</ul>
+<p>PNG image. <code>department: store</code>, <code>status: final</code>, <code>year: 2026</code></p>
+<ul>
+<li>Shippo Sensor packaging label</li>
+</ul>
+<p>PNG image. <code>department: legal</code>, <code>status: final</code>, <code>year: 2025</code></p>
+<ul>
+<li>Support FAQ 2026 Q2</li>
+</ul>
+<p>Markdown document. <code>department: support</code>, <code>status: final</code>, <code>year: 2026</code></p>
+<ul>
+<li>Warranty Policy 2026</li>
+</ul>
+<p>Markdown document. <code>department: legal</code>, <code>status: final</code>, <code>year: 2026</code></p>
+<ul>
+<li>Product Master excerpt</li>
+</ul>
+<p>JSON/text document. <code>department: product</code>, <code>status: draft</code>, <code>year: 2026</code></p>
+<p>The app includes a question field, a send button, metadata filters, grounded answers, citation cards, and a citation detail modal. For image citations, the card shows the image preview directly. Clicking it opens the citation details, including metadata, supporting text, and <code>media_id</code>.</p>
+<h2>Implementation Notes</h2>
+<p>When creating the File Search store, the demo specifies <code>models/gemini-embedding-2</code>.</p>
+<pre><code>const fileSearchStore = await ai.fileSearchStores.create({
+  config: {
+    displayName,
+    embeddingModel: &#x27;models/gemini-embedding-2&#x27;,
+  },
+});</code></pre>
+<p>During upload, each file is sent with its display name, MIME type, and custom metadata.</p>
+<pre><code>await ai.fileSearchStores.uploadToFileSearchStore({
+  file: filePath,
+  fileSearchStoreName: fileSearchStore.name,
+  config: {
+    displayName: file.displayName,
+    mimeType: file.mimeType,
+    customMetadata: metadataForFileSearch(file.metadata),
+  },
+});</code></pre>
+<p>For retrieval, the server calls Gemini <code>generateContent</code> with a File Search tool. Filters selected in the UI are converted into <code>metadataFilter</code> on the server.</p>
+<pre><code>const response = await ai.models.generateContent({
+  model: candidateModel,
+  contents: prompt,
+  config: {
+    tools: [
+      {
+        fileSearch: {
+          fileSearchStoreNames: [storeName],
+          ...(filter ? { metadataFilter: filter } : {}),
+        },
+      },
+    ],
+  },
+});</code></pre>
+<p>After the response comes back, the app reads <code>groundingMetadata.groundingChunks</code> and turns those chunks into citation cards. When a citation comes from an image, it can carry <code>mediaId</code>, which lets the UI say, “this exact image was part of the evidence.”</p>
+<pre><code>const groundingMetadata = geminiResponse.candidates?.[0]?.groundingMetadata;
+const citations = groundingMetadata?.groundingChunks
+  ?.map(citationFromChunk)
+  .filter(Boolean) ?? [];</code></pre>
+<p>The React app does not expose the API key in the browser. Instead, it calls a local Express proxy. The public GitHub Pages demo runs as a mock UI because it cannot safely hold secrets, while the real Gemini File Search path runs locally through <code>.env.local</code>.</p>
+<h2>What I Learned While Testing</h2>
+<p>The first practical issue was model selection. Gemma 4 is interesting, but the star of this demo is the File Search tool. For the <code>generateContent</code> path that uses File Search, Gemini models are the natural fit. The implementation accepts a comma-separated <code>GEMINI_MODELS</code> fallback chain, so if a model hits <code>RESOURCE_EXHAUSTED</code> or a temporary <code>UNAVAILABLE</code> error, the proxy can try the next candidate.</p>
+<p>The second issue was citation UX. Returning <code>media_id</code> is useful, but showing a long raw identifier in a card is not meaningful to users. In the demo, image citations display the actual image preview, and the raw metadata is available only when the user opens the detail view. RAG is more useful when people can quickly inspect the evidence, not just receive an answer.</p>
+<p>The third issue was separating public demos from real API demos. You should not put a Gemini API key in GitHub Pages. The public site is therefore a safe mock experience, while the real API flow is local and explicit. That distinction matters because users will naturally ask, “is this really talking to Gemini?”</p>
+<h2>How to Try It</h2>
+<p>To run only the mock UI:</p>
+<pre><code>npm install
+npm run generate:dataset
+npm run dev</code></pre>
+<p>To create a Gemini File Search store and test the real API path, place your key in <code>.env.local</code> and bootstrap the dataset.</p>
+<pre><code>GEMINI_API_KEY=your_api_key_here</code></pre>
+<pre><code>npm install
+npm run generate:dataset
+npm run bootstrap:gemini
+npm run dev</code></pre>
+<p>Then open:</p>
+<pre><code>http://127.0.0.1:5178/</code></pre>
+<h2>Why This Matters</h2>
+<p>This update to Gemini API File Search is not just image input support. It is a step toward managed multimodal RAG where images, documents, metadata, and citations can be handled together.</p>
+<p>In business applications, product photos, shelf labels, packaging labels, diagrams, PDFs, and FAQs rarely live in one neat format. Being able to ask a natural-language question, filter by operational metadata, and show evidence at the image or page level makes RAG feel much closer to a verifiable work search experience.</p>
+<p>That is the real shift here: RAG is moving from “a system that gives plausible answers” toward “a system that helps people check the evidence.”</p>
+<h2>References</h2>
+<ul>
+<li>Google Blog: Gemini API File Search is now multimodal: build efficient, verifiable RAG</li>
+</ul>
+<p>https://blog.google/innovation-and-ai/technology/developers-tools/expanded-gemini-api-file-search-multimodal-rag/</p>
+<ul>
+<li>Gemini API File Search docs</li>
+</ul>
+<p>https://ai.google.dev/gemini-api/docs/file-search</p>
+<ul>
+<li>Gemini API release notes</li>
+</ul>
+<p>https://ai.google.dev/gemini-api/docs/changelog</p>
+<ul>
+<li>Neko Neko Company File Search Demo</li>
+</ul>
+<p>https://github.com/Sunwood-ai-labs/nekoneko-file-search-demo</p>
+</article>
+</body>
+</html>
