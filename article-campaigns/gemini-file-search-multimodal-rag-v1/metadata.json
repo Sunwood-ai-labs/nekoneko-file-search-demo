@@ -5,6 +5,10 @@
   "status": "draft-ready",
   "createdAt": "2026-05-08",
   "thumbnail": "assets/thumbnail-maki-gemini-file-search-ja.png",
+  "thumbnails": {
+    "ja": "assets/thumbnail-maki-gemini-file-search-ja.png",
+    "en": "assets/thumbnail-maki-gemini-file-search-en.png"
+  },
   "repo": "https://github.com/Sunwood-ai-labs/nekoneko-file-search-demo",
   "demo": "https://sunwood-ai-labs.github.io/nekoneko-file-search-demo/",
   "release": "https://github.com/Sunwood-ai-labs/nekoneko-file-search-demo/releases/tag/v1.0.0",
