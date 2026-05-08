@@ -40,9 +40,9 @@
 <h2>ねこねこカンパニーのデモを作った</h2>
 <p>この変化を体感できるように、架空の会社「ねこねこカンパニー」のデモアプリを作りました。</p>
 <ul>
-<li>GitHub: https://github.com/Sunwood-ai-labs/nekoneko-file-search-demo</li>
-<li>Live demo: https://sunwood-ai-labs.github.io/nekoneko-file-search-demo/</li>
-<li>Release: https://github.com/Sunwood-ai-labs/nekoneko-file-search-demo/releases/tag/v1.0.0</li>
+<li>GitHub: <a href="https://github.com/Sunwood-ai-labs/nekoneko-file-search-demo">https://github.com/Sunwood-ai-labs/nekoneko-file-search-demo</a></li>
+<li>Live demo: <a href="https://sunwood-ai-labs.github.io/nekoneko-file-search-demo/">https://sunwood-ai-labs.github.io/nekoneko-file-search-demo/</a></li>
+<li>Release: <a href="https://github.com/Sunwood-ai-labs/nekoneko-file-search-demo/releases/tag/v1.0.0">https://github.com/Sunwood-ai-labs/nekoneko-file-search-demo/releases/tag/v1.0.0</a></li>
 </ul>
 <p>データセットは小さいですが、RAGでよく起きる悩みを一通り入れています。</p>
 <ul>
@@ -111,7 +111,7 @@ const citations = groundingMetadata?.groundingChunks
 <p>このデモではAPIキーをブラウザに出さないため、Reactアプリから直接Gemini APIを呼ばず、ローカルのExpress proxyを経由しています。GitHub Pages上の公開デモはsecretを持たないのでmock UIとして動き、実際のGemini File Searchはローカルで <code>.env.local</code> を設定して試す構成です。</p>
 <h2>デモ動画とアプリ画面</h2>
 <p>デモ動画はXに投稿しています。</p>
-<p>https://x.com/hAru_mAki_ch/status/2052031244666556447</p>
+<p><a href="https://x.com/hAru_mAki_ch/status/2052031244666556447">https://x.com/hAru_mAki_ch/status/2052031244666556447</a></p>
 <p>実際のアプリ画面はこんな雰囲気です。質問を送ると、Gemini API File Searchの回答、文書citation、画像citation、metadataが同じ画面で確認できます。</p>
 <p><img src="https://raw.githubusercontent.com/Sunwood-ai-labs/nekoneko-file-search-demo/main/article-campaigns/gemini-file-search-multimodal-rag-v1/assets/app-screenshot-nekoneko-file-search.png?cachebust=5134914" alt="ねこねこカンパニー社内ナレッジ検索室のアプリ画面"></p>
 <h2>使っていて分かったハマりどころ</h2>
@@ -136,21 +136,11 @@ npm run dev</code></pre>
 <p>RAGを「それっぽい回答を出す仕組み」から、「確認できる業務検索」に近づけるアップデート。今回のFile Searchのマルチモーダル化は、まさにその方向の一歩だと思います。</p>
 <h2>参考</h2>
 <ul>
-<li>Google Blog: Gemini API File Search is now multimodal: build efficient, verifiable RAG</li>
+<li><a href="https://blog.google/innovation-and-ai/technology/developers-tools/expanded-gemini-api-file-search-multimodal-rag/">Google Blog: Gemini API File Search is now multimodal: build efficient, verifiable RAG</a></li>
+<li><a href="https://ai.google.dev/gemini-api/docs/file-search">Gemini API File Search docs</a></li>
+<li><a href="https://ai.google.dev/gemini-api/docs/changelog">Gemini API release notes</a></li>
+<li><a href="https://github.com/Sunwood-ai-labs/nekoneko-file-search-demo">Nekoneko Company File Search Demo</a></li>
 </ul>
-<p>https://blog.google/innovation-and-ai/technology/developers-tools/expanded-gemini-api-file-search-multimodal-rag/</p>
-<ul>
-<li>Gemini API File Search docs</li>
-</ul>
-<p>https://ai.google.dev/gemini-api/docs/file-search</p>
-<ul>
-<li>Gemini API release notes</li>
-</ul>
-<p>https://ai.google.dev/gemini-api/docs/changelog</p>
-<ul>
-<li>Nekoneko Company File Search Demo</li>
-</ul>
-<p>https://github.com/Sunwood-ai-labs/nekoneko-file-search-demo</p>
 </article>
 </body>
 </html>
