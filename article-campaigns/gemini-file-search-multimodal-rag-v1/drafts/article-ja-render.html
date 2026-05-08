@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>Article Draft</title>
+<style>
+  body { margin: 40px; color: #111; background: #fff; font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; line-height: 1.9; }
+  article { max-width: 720px; }
+  h2 { font-size: 1.55rem; margin: 2.4em 0 0.8em; font-weight: 700; }
+  h3 { font-size: 1.25rem; margin: 2em 0 0.6em; font-weight: 700; }
+  p { margin: 1.1em 0; }
+  pre { margin: 1.2em 0; padding: 1em; background: #f6f8fa; border-radius: 6px; overflow-x: auto; line-height: 1.55; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.95em; }
+  blockquote { margin: 1.2em 0; padding-left: 1em; border-left: 4px solid #ddd; color: #444; }
+  ul, ol { margin: 1em 0 1em 1.4em; }
+</style>
+</head>
+<body>
+<article>
+<p>Gemini APIのFile Searchが、いよいよ「画像も含めて探せるRAG」に進化しました。</p>
+<p>ポイントは、Geminiが画像を理解できるようになった、という話ではありません。そこは以前からできました。今回面白いのは、RAGのための managed File Search store の中に、画像の埋め込み、検索、metadata filter、citation まで入ってきたことです。</p>
+<p>これまで画像を含む社内検索や商品検索を作るなら、画像embeddingを自分で作り、ベクタDBへ入れ、テキスト文書とは別に検索し、最後に「どの画像を根拠にしたか」をアプリ側で組み立てる必要がありました。今回のアップデートでは、その面倒な配管のかなり大きな部分をFile Search側に寄せられます。</p>
+<h2>何が変わったのか</h2>
+<p>Googleの発表で大きく取り上げられている変更は、主に3つです。</p>
+<ol>
+<li>画像をFile Search storeに入れられる</li>
+</ol>
+<p>PNG/JPEG画像を、テキスト文書と同じ検索体験に混ぜられます。</p>
+<ol>
+<li>custom metadataで絞り込める</li>
+</ol>
+<p><code>department</code>、<code>status</code>、<code>year</code> のような業務ラベルで検索範囲を狭められます。</p>
+<ol>
+<li>citationが細かくなった</li>
+</ol>
+<p>PDFなどはページ位置、画像は <code>media_id</code> で根拠をUIに戻しやすくなりました。</p>
+<p>公式ドキュメントでは、マルチモーダルFile Searchを使う場合、File Search store作成時にデフォルトのテキスト向けembeddingではなく <code>models/gemini-embedding-2</code> を指定する、と説明されています。画像についてはPNG/JPEGが対象で、画像チャンクが回答に使われた場合はgrounding metadataに <code>media_id</code> が返ります。</p>
+<p>つまり、これは「画像対応のLLMを呼ぶ」だけではなく、「画像と文書を同じ検索ストアに入れ、検索結果と根拠表示までプロダクトに組み込む」ためのアップデートです。</p>
+<h2>ねこねこカンパニーのデモを作った</h2>
+<p>この変化を体感できるように、架空の会社「ねこねこカンパニー」のデモアプリを作りました。</p>
+<ul>
+<li>GitHub: https://github.com/Sunwood-ai-labs/nekoneko-file-search-demo</li>
+<li>Live demo: https://sunwood-ai-labs.github.io/nekoneko-file-search-demo/</li>
+<li>Release: https://github.com/Sunwood-ai-labs/nekoneko-file-search-demo/releases/tag/v1.0.0</li>
+</ul>
+<p>データセットは小さいですが、RAGでよく起きる悩みを一通り入れています。</p>
+<ul>
+<li>にゃんサーバー Mini 商品写真</li>
+</ul>
+<p>PNG画像。<code>department: product</code>, <code>status: final</code>, <code>year: 2026</code></p>
+<ul>
+<li>毛玉クラウド Pro 棚札</li>
+</ul>
+<p>PNG画像。<code>department: store</code>, <code>status: final</code>, <code>year: 2026</code></p>
+<ul>
+<li>しっぽセンサー 梱包ラベル</li>
+</ul>
+<p>PNG画像。<code>department: legal</code>, <code>status: final</code>, <code>year: 2025</code></p>
+<ul>
+<li>サポートFAQ 2026 Q2</li>
+</ul>
+<p>Markdown文書。<code>department: support</code>, <code>status: final</code>, <code>year: 2026</code></p>
+<ul>
+<li>保証規定 2026</li>
+</ul>
+<p>Markdown文書。<code>department: legal</code>, <code>status: final</code>, <code>year: 2026</code></p>
+<ul>
+<li>商品マスター 抜粋</li>
+</ul>
+<p>JSON/text文書。<code>department: product</code>, <code>status: draft</code>, <code>year: 2026</code></p>
+<p>UIでは、質問欄、送信ボタン、metadata filter、回答、引用カード、引用詳細モーダルを用意しました。画像のcitationでは、カード上に画像プレビューをそのまま表示し、クリックすると <code>media_id</code> やmetadata、根拠テキストを確認できます。</p>
+<h2>実装の要点</h2>
+<p>File Search storeを作るところでは、<code>models/gemini-embedding-2</code> を指定します。</p>
+<pre><code>const fileSearchStore = await ai.fileSearchStores.create({
+  config: {
+    displayName,
+    embeddingModel: &#x27;models/gemini-embedding-2&#x27;,
+  },
+});</code></pre>
+<p>アップロード時には、ファイル名、MIME type、custom metadataを付けます。</p>
+<pre><code>await ai.fileSearchStores.uploadToFileSearchStore({
+  file: filePath,
+  fileSearchStoreName: fileSearchStore.name,
+  config: {
+    displayName: file.displayName,
+    mimeType: file.mimeType,
+    customMetadata: metadataForFileSearch(file.metadata),
+  },
+});</code></pre>
+<p>検索時は、Geminiの <code>generateContent</code> に File Search tool を渡します。UI側のfilter指定は、サーバーで <code>metadataFilter</code> に変換しています。</p>
+<pre><code>const response = await ai.models.generateContent({
+  model: candidateModel,
+  contents: prompt,
+  config: {
+    tools: [
+      {
+        fileSearch: {
+          fileSearchStoreNames: [storeName],
+          ...(filter ? { metadataFilter: filter } : {}),
+        },
+      },
+    ],
+  },
+});</code></pre>
+<p>回答後は、<code>groundingMetadata.groundingChunks</code> を読み、引用カードへ変換します。画像由来のcitationなら <code>mediaId</code> を持てるので、UIで「この画像を根拠にした」と示しやすくなります。</p>
+<pre><code>const groundingMetadata = geminiResponse.candidates?.[0]?.groundingMetadata;
+const citations = groundingMetadata?.groundingChunks
+  ?.map(citationFromChunk)
+  .filter(Boolean) ?? [];</code></pre>
+<p>このデモではAPIキーをブラウザに出さないため、Reactアプリから直接Gemini APIを呼ばず、ローカルのExpress proxyを経由しています。GitHub Pages上の公開デモはsecretを持たないのでmock UIとして動き、実際のGemini File Searchはローカルで <code>.env.local</code> を設定して試す構成です。</p>
+<h2>使っていて分かったハマりどころ</h2>
+<p>まず、モデル選びです。Gemma 4は話題性がありますが、このデモの主役はFile Search toolです。File Searchを使うgenerateContentの経路では、Gemini系モデルを使うのが自然です。実装では <code>GEMINI_MODELS</code> をカンマ区切りのフォールバックチェーンにして、quotaや一時的な高負荷で <code>RESOURCE_EXHAUSTED</code> や <code>UNAVAILABLE</code> が出たときに次のモデルを試すようにしました。</p>
+<p>次に、citationのUIです。APIから <code>media_id</code> が返っても、そのまま長い文字列をカードに出すだけでは、ユーザーには何も伝わりません。今回のデモでは、画像citationはカード上に画像を表示し、クリックで詳細を開けるようにしました。RAGの価値は「答えが出る」だけでなく、「どの根拠を見れば確認できるか」がすぐ分かることにあります。</p>
+<p>最後に、公開デモと実APIデモの切り分けです。GitHub PagesにAPIキーを置くわけにはいかないので、公開サイトはmockで体験を見せ、実際のGemini通信はローカルproxyで動かす形にしました。ここを曖昧にすると、「本当にGemini APIを使っているのか」が分かりにくくなります。</p>
+<h2>試し方</h2>
+<p>mock UIだけ触るなら、これで起動できます。</p>
+<pre><code>npm install
+npm run generate:dataset
+npm run dev</code></pre>
+<p>Gemini File Search storeを作って実APIで試す場合は、<code>.env.local</code> にAPIキーを置いてからbootstrapします。</p>
+<pre><code>GEMINI_API_KEY=your_api_key_here</code></pre>
+<pre><code>npm install
+npm run generate:dataset
+npm run bootstrap:gemini
+npm run dev</code></pre>
+<p>起動後、<code>http://127.0.0.1:5178/</code> を開くとデモを試せます。</p>
+<h2>まとめ</h2>
+<p>今回のGemini API File Searchのアップデートは、単なる画像入力対応ではありません。画像、文書、metadata、citationをまとめて扱える managed RAG の進化です。</p>
+<p>特に業務アプリでは、商品写真、棚札、梱包ラベル、図表、PDF、FAQがばらばらに存在します。そこに対して、自然言語で聞き、metadataで絞り、回答の根拠を画像やページ単位で見せられるようになるのは、かなり実用寄りの変化です。</p>
+<p>RAGを「それっぽい回答を出す仕組み」から、「確認できる業務検索」に近づけるアップデート。今回のFile Searchのマルチモーダル化は、まさにその方向の一歩だと思います。</p>
+<h2>参考</h2>
+<ul>
+<li>Google Blog: Gemini API File Search is now multimodal: build efficient, verifiable RAG</li>
+</ul>
+<p>https://blog.google/innovation-and-ai/technology/developers-tools/expanded-gemini-api-file-search-multimodal-rag/</p>
+<ul>
+<li>Gemini API File Search docs</li>
+</ul>
+<p>https://ai.google.dev/gemini-api/docs/file-search</p>
+<ul>
+<li>Gemini API release notes</li>
+</ul>
+<p>https://ai.google.dev/gemini-api/docs/changelog</p>
+<ul>
+<li>Nekoneko Company File Search Demo</li>
+</ul>
+<p>https://github.com/Sunwood-ai-labs/nekoneko-file-search-demo</p>
+</article>
+</body>
+</html>

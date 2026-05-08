@@ -1,0 +1,26 @@
+{
+  "title": "画像も探せるRAGへ：Gemini API File Searchのマルチモーダル化をデモで理解する",
+  "slug": "gemini-file-search-multimodal-rag-nekoneko-demo",
+  "language": "ja",
+  "status": "draft-ready",
+  "createdAt": "2026-05-08",
+  "thumbnail": "assets/thumbnail-maki-gemini-file-search-ja.png",
+  "repo": "https://github.com/Sunwood-ai-labs/nekoneko-file-search-demo",
+  "demo": "https://sunwood-ai-labs.github.io/nekoneko-file-search-demo/",
+  "release": "https://github.com/Sunwood-ai-labs/nekoneko-file-search-demo/releases/tag/v1.0.0",
+  "tags": [
+    "Gemini API",
+    "File Search",
+    "RAG",
+    "マルチモーダルRAG",
+    "gemini-embedding-2",
+    "React",
+    "Vite"
+  ],
+  "sources": [
+    "https://blog.google/innovation-and-ai/technology/developers-tools/expanded-gemini-api-file-search-multimodal-rag/",
+    "https://ai.google.dev/gemini-api/docs/file-search",
+    "https://ai.google.dev/gemini-api/docs/changelog",
+    "https://github.com/Sunwood-ai-labs/nekoneko-file-search-demo"
+  ]
+}
