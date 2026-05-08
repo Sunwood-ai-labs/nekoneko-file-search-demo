@@ -17,6 +17,7 @@
 </head>
 <body>
 <article>
+<p><img src="https://raw.githubusercontent.com/Sunwood-ai-labs/nekoneko-file-search-demo/main/article-campaigns/gemini-file-search-multimodal-rag-v1/assets/thumbnail-maki-gemini-file-search-ja.png?cachebust=0e6d240" alt="画像も探せるRAGへ Gemini API File Searchのマルチモーダル化 サムネイル"></p>
 <p>Gemini APIのFile Searchが、いよいよ「画像も含めて探せるRAG」に進化しました。</p>
 <p>ポイントは、Geminiが画像を理解できるようになった、という話ではありません。そこは以前からできました。今回面白いのは、RAGのための managed File Search store の中に、画像の埋め込み、検索、metadata filter、citation まで入ってきたことです。</p>
 <p>これまで画像を含む社内検索や商品検索を作るなら、画像embeddingを自分で作り、ベクタDBへ入れ、テキスト文書とは別に検索し、最後に「どの画像を根拠にしたか」をアプリ側で組み立てる必要がありました。今回のアップデートでは、その面倒な配管のかなり大きな部分をFile Search側に寄せられます。</p>
@@ -108,6 +109,11 @@ const citations = groundingMetadata?.groundingChunks
   ?.map(citationFromChunk)
   .filter(Boolean) ?? [];</code></pre>
 <p>このデモではAPIキーをブラウザに出さないため、Reactアプリから直接Gemini APIを呼ばず、ローカルのExpress proxyを経由しています。GitHub Pages上の公開デモはsecretを持たないのでmock UIとして動き、実際のGemini File Searchはローカルで <code>.env.local</code> を設定して試す構成です。</p>
+<h2>デモ動画とアプリ画面</h2>
+<p>デモ動画はXに投稿しています。</p>
+<p>https://x.com/hAru_mAki_ch/status/2052031244666556447</p>
+<p>実際のアプリ画面はこんな雰囲気です。質問を送ると、Gemini API File Searchの回答、文書citation、画像citation、metadataが同じ画面で確認できます。</p>
+<p><img src="https://raw.githubusercontent.com/Sunwood-ai-labs/nekoneko-file-search-demo/main/article-campaigns/gemini-file-search-multimodal-rag-v1/assets/app-screenshot-nekoneko-file-search.png?cachebust=5134914" alt="ねこねこカンパニー社内ナレッジ検索室のアプリ画面"></p>
 <h2>使っていて分かったハマりどころ</h2>
 <p>まず、モデル選びです。Gemma 4は話題性がありますが、このデモの主役はFile Search toolです。File Searchを使うgenerateContentの経路では、Gemini系モデルを使うのが自然です。実装では <code>GEMINI_MODELS</code> をカンマ区切りのフォールバックチェーンにして、quotaや一時的な高負荷で <code>RESOURCE_EXHAUSTED</code> や <code>UNAVAILABLE</code> が出たときに次のモデルを試すようにしました。</p>
 <p>次に、citationのUIです。APIから <code>media_id</code> が返っても、そのまま長い文字列をカードに出すだけでは、ユーザーには何も伝わりません。今回のデモでは、画像citationはカード上に画像を表示し、クリックで詳細を開けるようにしました。RAGの価値は「答えが出る」だけでなく、「どの根拠を見れば確認できるか」がすぐ分かることにあります。</p>

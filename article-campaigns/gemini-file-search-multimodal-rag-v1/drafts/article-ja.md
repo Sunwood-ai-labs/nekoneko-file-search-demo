@@ -1,3 +1,5 @@
+<img src="https://raw.githubusercontent.com/Sunwood-ai-labs/nekoneko-file-search-demo/main/article-campaigns/gemini-file-search-multimodal-rag-v1/assets/thumbnail-maki-gemini-file-search-ja.png?cachebust=0e6d240" alt="画像も探せるRAGへ Gemini API File Searchのマルチモーダル化 サムネイル">
+
 Gemini APIのFile Searchが、いよいよ「画像も含めて探せるRAG」に進化しました。
 
 ポイントは、Geminiが画像を理解できるようになった、という話ではありません。そこは以前からできました。今回面白いのは、RAGのための managed File Search store の中に、画像の埋め込み、検索、metadata filter、citation まで入ってきたことです。
@@ -102,6 +104,16 @@ const citations = groundingMetadata?.groundingChunks
 ```
 
 このデモではAPIキーをブラウザに出さないため、Reactアプリから直接Gemini APIを呼ばず、ローカルのExpress proxyを経由しています。GitHub Pages上の公開デモはsecretを持たないのでmock UIとして動き、実際のGemini File Searchはローカルで `.env.local` を設定して試す構成です。
+
+## デモ動画とアプリ画面
+
+デモ動画はXに投稿しています。
+
+https://x.com/hAru_mAki_ch/status/2052031244666556447
+
+実際のアプリ画面はこんな雰囲気です。質問を送ると、Gemini API File Searchの回答、文書citation、画像citation、metadataが同じ画面で確認できます。
+
+<img src="https://raw.githubusercontent.com/Sunwood-ai-labs/nekoneko-file-search-demo/main/article-campaigns/gemini-file-search-multimodal-rag-v1/assets/app-screenshot-nekoneko-file-search.png?cachebust=5134914" alt="ねこねこカンパニー社内ナレッジ検索室のアプリ画面">
 
 ## 使っていて分かったハマりどころ
 

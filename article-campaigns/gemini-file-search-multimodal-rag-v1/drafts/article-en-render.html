@@ -17,6 +17,7 @@
 </head>
 <body>
 <article>
+<p><img src="https://raw.githubusercontent.com/Sunwood-ai-labs/nekoneko-file-search-demo/main/article-campaigns/gemini-file-search-multimodal-rag-v1/assets/thumbnail-maki-gemini-file-search-en.png?cachebust=0e6d240" alt="Gemini File Search Multimodal RAG thumbnail"></p>
 <p>Gemini API File Search has evolved into RAG that can search across images as well as text.</p>
 <p>The interesting part is not simply that Gemini can understand images. That was already possible. What changed is that image embeddings, retrieval, metadata filtering, and citations are now part of the managed File Search store workflow for RAG.</p>
 <p>Previously, if you wanted to build an internal search or product-support search system that included images, you often had to create image embeddings yourself, store them in a vector database, retrieve them separately from text documents, and then build your own citation layer to show which image supported the answer. With this update, a much larger part of that plumbing can move into File Search.</p>
@@ -108,6 +109,11 @@ const citations = groundingMetadata?.groundingChunks
   ?.map(citationFromChunk)
   .filter(Boolean) ?? [];</code></pre>
 <p>The React app does not expose the API key in the browser. Instead, it calls a local Express proxy. The public GitHub Pages demo runs as a mock UI because it cannot safely hold secrets, while the real Gemini File Search path runs locally through <code>.env.local</code>.</p>
+<h2>Demo Video and App Screenshot</h2>
+<p>I also posted a short demo video on X.</p>
+<p>https://x.com/hAru_mAki_ch/status/2052031244666556447</p>
+<p>Here is the app screen. After a question is sent, the UI shows the grounded Gemini API File Search answer, document citations, image citations, and metadata in the same workspace.</p>
+<p><img src="https://raw.githubusercontent.com/Sunwood-ai-labs/nekoneko-file-search-demo/main/article-campaigns/gemini-file-search-multimodal-rag-v1/assets/app-screenshot-nekoneko-file-search.png?cachebust=5134914" alt="Neko Neko Company File Search demo app screen"></p>
 <h2>What I Learned While Testing</h2>
 <p>The first practical issue was model selection. Gemma 4 is interesting, but the star of this demo is the File Search tool. For the <code>generateContent</code> path that uses File Search, Gemini models are the natural fit. The implementation accepts a comma-separated <code>GEMINI_MODELS</code> fallback chain, so if a model hits <code>RESOURCE_EXHAUSTED</code> or a temporary <code>UNAVAILABLE</code> error, the proxy can try the next candidate.</p>
 <p>The second issue was citation UX. Returning <code>media_id</code> is useful, but showing a long raw identifier in a card is not meaningful to users. In the demo, image citations display the actual image preview, and the raw metadata is available only when the user opens the detail view. RAG is more useful when people can quickly inspect the evidence, not just receive an answer.</p>

@@ -1,3 +1,5 @@
+<img src="https://raw.githubusercontent.com/Sunwood-ai-labs/nekoneko-file-search-demo/main/article-campaigns/gemini-file-search-multimodal-rag-v1/assets/thumbnail-maki-gemini-file-search-en.png?cachebust=0e6d240" alt="Gemini File Search Multimodal RAG thumbnail">
+
 Gemini API File Search has evolved into RAG that can search across images as well as text.
 
 The interesting part is not simply that Gemini can understand images. That was already possible. What changed is that image embeddings, retrieval, metadata filtering, and citations are now part of the managed File Search store workflow for RAG.
@@ -102,6 +104,16 @@ const citations = groundingMetadata?.groundingChunks
 ```
 
 The React app does not expose the API key in the browser. Instead, it calls a local Express proxy. The public GitHub Pages demo runs as a mock UI because it cannot safely hold secrets, while the real Gemini File Search path runs locally through `.env.local`.
+
+## Demo Video and App Screenshot
+
+I also posted a short demo video on X.
+
+https://x.com/hAru_mAki_ch/status/2052031244666556447
+
+Here is the app screen. After a question is sent, the UI shows the grounded Gemini API File Search answer, document citations, image citations, and metadata in the same workspace.
+
+<img src="https://raw.githubusercontent.com/Sunwood-ai-labs/nekoneko-file-search-demo/main/article-campaigns/gemini-file-search-multimodal-rag-v1/assets/app-screenshot-nekoneko-file-search.png?cachebust=5134914" alt="Neko Neko Company File Search demo app screen">
 
 ## What I Learned While Testing
 
